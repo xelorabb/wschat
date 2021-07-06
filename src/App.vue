@@ -22,7 +22,7 @@
           <fas icon="paper-plane" />
         </button>
       </div>
-      <div v-if="hasError" class="text-xs text-red-600 pt-1">No empty message allowed!</div>
+      <div v-if="hasError" class="text-xs text-red-600 pt-1">{{ errorMessage }}</div>
     </form>
     <span class="pt-2">Your Name: {{socketID}}</span>
   </div>
@@ -65,10 +65,26 @@ export default {
       socketID: null,
       message: '',
       messages: [],
-      hasError: false
+
+      // Error variables
+      hasError: false,
+      errorMessage: '',
+      errors: {
+        empty: 'No empty message allowed!',
+        spam: 'Don\'t spam, please'
+      },
+
+      // Spam variables
+      spamTimeout: null,
+      spamTimeoutActive: false,
+      spamCounter: 0,
+      lastMessageTime: 0
     }
   },
   methods: {
+    // Adds message to client messages array
+    // If data is an object then value is ignored
+    // Otherwise data is the socket id
     pushMessage: function(data, value) {
       if(typeof data == 'object') { this.messages.push(data) }
       else {
@@ -78,24 +94,68 @@ export default {
         })
       }
     },
+
+    // Sends a chat message to server and adds it to client
+    // Checks spam and empty messages
     sendMessage: function() {
-      // Using this, because v-model.trim don't trim strings with only
-      // whitespaces to an empty string
-      this.message = this.message.trim()
+      if(this.spamTimeoutActive) {
+        this.setErrorMessage('spam')
+      } else {
+        // Using this, because v-model.trim don't trim strings with only
+        // whitespaces to an empty string
+        this.message = this.message.trim()
 
-      if(this.message != '') {
-        const message = {
-          sender: this.socketID,
-          value: this.message
-        }
+        if(this.message != '') {
+          const message = {
+            sender: this.socketID,
+            value: this.message
+          }
 
-        this.pushMessage(message)
-        this.socket.emit('send-message', message)
-        this.message = ''
+          this.pushMessage(message)
+          this.socket.emit('send-message', message)
+
+          this.setErrorMessage()
+          this.countSpamMessages()
+
+        } else { this.setErrorMessage('empty') }
+      }
+
+      this.message = ''
+    },
+
+    // If a message is passed, set an error message
+    // Otherwise, clean up
+    setErrorMessage: function(message) {
+      if(typeof message == 'string') {
+        this.hasError = true
+        this.errorMessage = this.errors[message]
+      }
+      else {
         this.hasError = false
-      } else { this.hasError = true }
+        this.errorMessage = ''
+      }
+    },
+
+    // Counts how many messages were written in less than 1 second
+    // A timeout is started after 5 spam messages
+    countSpamMessages: function() {
+      if(Date.now() - this.lastMessageTime <= 1000) { this.spamCounter++; }
+      this.lastMessageTime = Date.now()
+
+      if(this.spamCounter >= 5){ this.initSpamTimeout() }
+    },
+
+    // Starts a 10 second spam timeout
+    initSpamTimeout: function() {
+      this.spamTimeoutActive = true
+      this.spamTimeout = setTimeout(() => {
+        this.spamTimeoutActive = false
+        this.spamCounter = 0
+        clearTimeout(this.spamTimeout)
+      }, 10000)
     }
   },
+
   watch: {
     // Scrolls to chat bottom
     messages: {
