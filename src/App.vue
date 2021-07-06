@@ -1,31 +1,102 @@
 <template>
   <div class="flex flex-col px-6 py-6">
+
+    <!-- headline -->
     <h1 class="text-6xl w-full text-center pb-4">Websocket Chat</h1>
 
-    <div class="text-xs text-right py-1">Server Time: {{ new Date(serverTime).toLocaleTimeString() }}</div>
-    <form @submit.prevent class="flex flex-col">
-      <div id="chat" class="h-60 overflow-auto">
-        <div v-for="msg in messages" :key="msg.value" class="even:bg-gray-200 odd:bg-white">
-          <span class="font-bold">{{msg.sender == socketID ? 'You' : msg.sender}}: </span>
+    <!-- top control panel -->
+    <div class="flex items-center mb-2">
 
-          <span v-if="msg.sender == 'server'" class="font-bold text-blue-800">{{msg.value}}</span>
-          <span v-else>{{msg.value}}</span>
-        </div>
-      </div>
-      <div class="flex">
-        <input v-model="message" @keyup.enter="sendMessage()" placeholder="Type your message ..."
-               v-bind:class="{ 'border-red-600': hasError}"
-               class="flex-grow mt-2 mr-2 hadow appearance-none border rounded py-2 playholder-gray-400
-                      px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" />
-
-        <button @click="sendMessage()" title="send message"
-                class="flex-none mt-2 bg-blue-500 hover:bg-blue-700 text-white
-                       font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">
-          <fas icon="paper-plane" />
+      <!-- change view button group -->
+      <div class="flex flex-none justify-center rounded-lg text-sm" role="group">
+        <button @click="changeActiveView('list')" title="list view"
+                v-bind:class="{ 'bg-blue-700' : activeView == 'list' }"
+                class="bg-blue-500 text-white hover:bg-blue-700 rounded-l-lg px-2 py-1 mx-0 outline-none">
+          <fas icon="list" />
+        </button>
+        <button @click="changeActiveView('bubble')" title="bubble view"
+                v-bind:class="{ 'bg-blue-700' : activeView == 'bubble' }"
+                class="bg-blue-500 text-white hover:bg-blue-700 rounded-r-lg px-2 py-1 mx-0 outline-none">
+          <fas icon="comments" />
         </button>
       </div>
-      <div v-if="hasError" class="text-xs text-red-600 pt-1">{{ errorMessage }}</div>
+
+      <div class="flex-grow"></div>
+
+      <!-- server time -->
+      <div class="flex-none text-xs text-right">Server Time: {{ new Date(serverTime).toLocaleTimeString() }}</div>
+    </div>
+
+    <!-- chat panel -->
+    <div id="chat" class="h-60 overflow-auto">
+      <template v-for="msg in messages" :key="msg.value">
+
+        <!-- list view -->
+        <template v-if="activeView == 'list'">
+          <div class="p-1 odd:bg-gray-200 even:bg-white">
+
+            <!-- list sender -->
+            <span class="font-bold">{{ msg.sender == socketID ? 'You' : msg.sender }}: </span>
+
+            <!-- list message -->
+            <span v-if="msg.sender == 'server'" class="font-bold text-blue-700">{{ msg.value }}</span>
+            <span v-else>{{ msg.value }}</span>
+
+          </div>
+        </template>
+
+        <!-- bubble view -->
+        <template v-else>
+
+          <!-- client bubble -->
+          <template v-if="msg.sender != 'server'">
+            <div v-bind:class="{'justify-end': msg.sender == socketID}" class="flex">
+              <div class="bg-gray-100 p-2 m-2 border rounded-xl w-7/12">
+
+                <!-- bubble sender -->
+                <div class="text-xs text-blue-700 pb-2">{{ msg.sender == socketID ? 'You' : msg.sender }}</div>
+
+                <!-- bubble message -->
+                <div>{{ msg.value }}</div>
+
+              </div>
+            </div>
+          </template>
+
+          <!-- server bubble -->
+          <template v-else>
+            <div class="flex justify-center">
+              <div class="bg-gray-100 text-center italic p-2 m-2 border rounded-xl w-2/3">
+                {{ msg.value }}
+              </div>
+            </div>
+          </template>
+
+        </template>
+      </template>
+    </div>
+
+    <!-- chat control panel -->
+    <form @submit.prevent class="flex">
+
+      <!-- message input -->
+      <input v-model="message" @keyup.enter="sendMessage()" placeholder="Type your message ..."
+             v-bind:class="{ 'border-red-600': hasError}"
+             class="flex-grow mt-2 mr-2 hadow appearance-none border rounded py-2 playholder-gray-400
+                    px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" />
+
+      <!-- send button -->
+      <button @click="sendMessage()" title="send message"
+              class="flex-none mt-2 bg-blue-500 hover:bg-blue-700 text-white
+                     font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">
+        <fas icon="paper-plane" />
+      </button>
+
     </form>
+
+    <!-- message input error message -->
+    <div v-if="hasError" class="text-xs text-red-600 pt-1">{{ errorMessage }}</div>
+
     <span class="pt-2">Your Name: {{socketID}}</span>
   </div>
 </template>
@@ -80,6 +151,9 @@ export default {
       serverTime: Date.now(),
       message: '',
       messages: [],
+
+      // View variables
+      activeView: 'list',
 
       // Error variables
       hasError: false,
@@ -138,6 +212,12 @@ export default {
       this.message = ''
     },
 
+    // Changes active chat view
+    changeActiveView: function(type) {
+      this.activeView = type
+      this.scrollBottom()
+    },
+
     // If a message is passed, set an error message
     // Otherwise, clean up
     setErrorMessage: function(message) {
@@ -168,18 +248,21 @@ export default {
         this.spamCounter = 0
         clearTimeout(this.spamTimeout)
       }, 10000)
+    },
+
+    //Scrolls to chat bottom
+    scrollBottom: function() {
+      this.$nextTick(() => {
+        const chat = document.getElementById('chat')
+        chat.scrollTop = chat.scrollHeight
+      })
     }
   },
 
   watch: {
-    // Scrolls to chat bottom
+    // Scrolls to chat bottom when new message added
     messages: {
-      handler() {
-        this.$nextTick(() => {
-          const chat = document.getElementById('chat')
-          chat.scrollTop = chat.scrollHeight
-        })
-      },
+      handler() { this.scrollBottom() },
       deep: true
     }
   }
