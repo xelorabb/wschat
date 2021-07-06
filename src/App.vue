@@ -1,6 +1,8 @@
 <template>
   <div class="flex flex-col px-6 py-6">
     <h1 class="text-6xl w-full text-center pb-4">Websocket Chat</h1>
+
+    <div class="text-xs text-right py-1">Server Time: {{ new Date(serverTime).toLocaleTimeString() }}</div>
     <form @submit.prevent class="flex flex-col">
       <div id="chat" class="h-60 overflow-auto">
         <div v-for="msg in messages" :key="msg.value" class="even:bg-gray-200 odd:bg-white">
@@ -42,27 +44,40 @@ export default {
 
     vm.socket = socket
 
+    // Adds current client joined message to client messages
     vm.socket.on('connect', () => {
       vm.socketID = socket.id
       vm.pushMessage('server', `You entered the chat`)
     })
 
+    // Adds new client joined message to client messages
     vm.socket.on('join-bc', (socketID) => {
       vm.pushMessage('server', `${socketID} entered the chat`)
     })
 
+    // Adds other client leaved message to client messages
     vm.socket.on('leave-bc', (socketID) => {
       vm.pushMessage('server', `${socketID} leaved the chat`)
     })
 
+    // Adds receiving message to client messages
     vm.socket.on('send-message-bc', (message) => {
       vm.pushMessage(message)
+    })
+
+    // Gets server time and start client interval to update the time
+    vm.socket.on('server-time', (time) => {
+      vm.serverTime = time
+      setInterval(() => {
+        vm.serverTime += 1000
+      }, 1000)
     })
   },
   data() {
     return {
       socket: null,
       socketID: null,
+      serverTime: Date.now(),
       message: '',
       messages: [],
 
