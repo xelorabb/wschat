@@ -2,10 +2,31 @@ const express = require('express')
 const app = express()
 const server = require('http').createServer(app)
 const io = require('socket.io')(server, {cors: true})
+const winston = require('winston')
 const port = 3000
 
+// Define winston logger
+const logger = winston.createLogger({
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({
+      level: 'error',
+      filename: 'logs/error.log',
+      maxsize: 5242880
+    }),
+    new winston.transports.File({
+      filename: 'logs/all.log',
+      maxsize: 5242880
+    })
+  ],
+  format: winston.format.combine(
+    winston.format.timestamp({ format: 'MMM-DD-YYYY HH:mm:ss' }),
+    winston.format.json()
+  )
+})
+
 io.on('connection', (socket) => {
-  console.log(`${socket.id} connected`)
+  logger.log('info', 'connected', {socket: {id: socket.id}})
 
   // Sends server time to client
   socket.emit('server-time', Date.now())
@@ -15,13 +36,13 @@ io.on('connection', (socket) => {
 
   // Broadcasts a client leaved
   socket.on('disconnect', () => {
-    console.log(`${socket.id} disconnected`)
+    logger.log('info', 'disconnected', {socket: {id: socket.id}})
     socket.broadcast.emit('leave-bc', socket.id)
   })
 
   // Broadcasts a message from a client
   socket.on('send-message', (message) => {
-    console.log(`${message.sender} sended '${message.value}'`)
+    logger.log('info', 'message sended', {socket: {id: socket.id}, value: message.value})
     socket.broadcast.emit('send-message-bc', message)
   })
 })
