@@ -22,7 +22,7 @@
       </div>
 
       <div class="flex-grow px-2">
-        <select v-model="$i18n.locale" :title="$t('tooltips.language')"
+        <select v-model="$i18n.locale" @change="updateLocalizationCookie()" :title="$t('tooltips.language')"
                 class="border rounded py-1 px-1 text-gray-700 focus:outline-none focus:shadow-outline">
           <option value="en">en</option>
           <option value="de">de</option>
@@ -118,6 +118,8 @@ export default {
       reconnection: false,
       transports: ["websocket"]
     })
+
+    vm.loadCookies()
 
     vm.socket = socket
 
@@ -221,6 +223,7 @@ export default {
     // Changes active chat view
     changeActiveView: function(type) {
       this.activeView = type
+      this.updateViewCookie(type)
       this.scrollBottom()
     },
 
@@ -267,6 +270,33 @@ export default {
     // Translates the server messages
     translateServerMessage: function(value) {
       return `${value.client == 'you' ? this.$t('you') : value.client} ${this.$t(value.msg)}`
+    },
+
+    // Updates i18n localization cookie
+    updateLocalizationCookie: function() {
+      this.updateCookie('locale', this.$i18n.locale)
+    },
+
+    // Updates view cookie
+    updateViewCookie: function(view) {
+      this.updateCookie('view', view)
+    },
+
+    // Cookie update helper
+    updateCookie: function(key, value) {
+      this.$cookie.setCookie(key, value)
+    },
+
+    // Loads all stored cookies if available
+    // Otherwise set the cookies to default values
+    loadCookies: function() {
+      if(this.$cookie.isCookieAvailable('locale')){
+        this.$i18n.locale = this.$cookie.getCookie('locale')
+      } else { this.updateLocalizationCookie() }
+
+      if(this.$cookie.isCookieAvailable('view')){
+        this.activeView = this.$cookie.getCookie('view')
+      } else { this.updateViewCookie('list') }
     }
   },
 

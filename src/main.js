@@ -4,6 +4,7 @@ import { createApp } from 'vue'
 import { createI18n } from 'vue-i18n/index'
 import en from '../locales/en.json'
 import de from '../locales/de.json'
+import { VueCookieNext } from 'vue-cookie-next'
 
 import { library } from '@fortawesome/fontawesome-svg-core'
 import {
@@ -23,7 +24,10 @@ const i18n = createI18n({
   messages: { en, de }
 });
 
+VueCookieNext.config({ expire: '1d' })
+
 createApp(App)
   .use(i18n)
+  .use(VueCookieNext)
   .component('fas', FontAwesomeIcon)
   .mount('#app')
