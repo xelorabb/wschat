@@ -47,7 +47,7 @@
 
               <!-- list message -->
               <span v-if="msg.sender == 'server'" class="flex-grow px-1 font-bold text-blue-700">{{ translateServerMessage(msg.value) }}</span>
-              <span v-else class="flex-grow px-1">{{ msg.value }}</span>
+              <span v-else class="flex-grow px-1" v-html="msg.value"></span>
               <span class="flex-none text-xs italic">{{ getTimeString(msg.timestamp, 'short') }}</span>
             </div>
 
@@ -66,7 +66,7 @@
                 <div class="text-xs text-blue-700 pb-2">{{ msg.sender == socketID ? $t('you') : msg.sender }}</div>
 
                 <!-- bubble message -->
-                <div>{{ msg.value }}</div>
+                <div v-html="msg.value"></div>
 
                 <!-- bubble timestamp -->
                 <div class="text-xs text-blue-700 text-right italic pt-2">{{ getTimeString(msg.timestamp, 'short') }}</div>
@@ -93,16 +93,22 @@
     <form @submit.prevent class="flex">
 
       <!-- message input -->
-      <input v-model="message" @keyup.enter="sendMessage()" :placeholder="$t('placeholder.messageInput')"
-             :class="{ 'border-red-600': hasError}"
-             class="flex-grow mt-2 mr-2 border rounded py-2 playholder-gray-400
-                    px-3 text-gray-700 focus:outline-none focus:shadow-outline" type="text" />
+      <textarea id="messageArea"
+                v-model="message"
+                @keyup.enter="submitMessage($event)"
+                @keydown.enter.prevent
+                :placeholder="$t('placeholders.messageInput')"
+                :class="{ 'border-red-600': hasError }"
+                class="flex-grow mt-2 mr-2 border rounded py-2 playholder-gray-400
+                       resize-none px-3 text-gray-700 focus:outline-none
+                       focus:shadow-outline"
+                type="text" rows="1" />
 
       <!-- send button -->
       <button @click="sendMessage()" :title="$t('tooltips.sendMessage')"
-              class="flex-none mt-2 bg-blue-500 hover:bg-blue-700 text-white
-                     font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">
-        <fas icon="paper-plane" />
+              class="self-start flex-none mt-2 bg-blue-500 hover:bg-blue-700 text-white
+                     font-bold py-4 px-4 rounded focus:outline-none focus:shadow-outline" type="button">
+        <fas icon="paper-plane" size="lg"/>
       </button>
 
     </form>
@@ -111,6 +117,14 @@
     <div v-if="hasError" class="text-xs text-red-600 pt-1">{{ $t(errorMessage) }}</div>
 
     <span class="pt-2">{{ $t('yourName') }}: {{socketID}}</span>
+
+    <div>
+      <input v-model="sendWithEnter"
+             @change="updateSendWithEnterCookie()"
+             type="checkbox" name="send-with-enter" />
+      <label class="pl-1" for="send-with-enter">{{ $t('labels.sendWithEnter') }}</label>
+    </div>
+
   </div>
 </template>
 
@@ -154,7 +168,7 @@ export default {
     // Gets server time and start client interval to update the time
     vm.socket.on('server-time', (time) => {
       vm.serverTime = time
-      
+
       clearInterval(vm.clientTimeInterval)
       vm.clientTimeInterval = setInterval(() => {
         vm.serverTime += 1000
@@ -172,6 +186,9 @@ export default {
 
       // View variables
       activeView: 'list',
+
+      // Option variables
+      sendWithEnter: true,
 
       // Error variables
       hasError: false,
@@ -213,6 +230,9 @@ export default {
         // whitespaces to an empty string
         this.message = this.message.trim()
 
+        // Replaces all newlines with html <br/>
+        this.message = this.message.replace(/\n/g, "<br/>")
+
         if(this.message != '') {
           const message = {
             sender: this.socketID,
@@ -230,6 +250,35 @@ export default {
       }
 
       this.message = ''
+    },
+
+    // Handles message submit event
+    // Send a message or make a newline by pressing enter
+    // Swap bevahior with ctrl
+    submitMessage: function(e) {
+      const newline = () => {
+        this.message += '\n'
+
+        // Grows textarea up to 4 rows
+        if(document.getElementById('messageArea').rows < 4) {
+          document.getElementById('messageArea').rows += 1
+        }
+      }
+
+      const sendMessage = () => {
+        this.sendMessage()
+
+        // Sets textarea back to 1 row
+        document.getElementById('messageArea').rows = 1
+      }
+
+      if(this.sendWithEnter) {
+        if(e.ctrlKey) { newline() }
+        else { sendMessage() }
+      } else {
+        if(e.ctrlKey) { sendMessage() }
+        else { newline() }
+      }
     },
 
     // Changes active chat view
@@ -294,6 +343,11 @@ export default {
       this.updateCookie('view', view)
     },
 
+    // Updates send with enter cookie
+    updateSendWithEnterCookie: function() {
+      this.updateCookie('send_with_enter', this.sendWithEnter)
+    },
+
     // Cookie update helper
     updateCookie: function(key, value) {
       this.$cookie.setCookie(key, value)
@@ -309,6 +363,10 @@ export default {
       if(this.$cookie.isCookieAvailable('view')){
         this.activeView = this.$cookie.getCookie('view')
       } else { this.updateViewCookie('list') }
+
+      if(this.$cookie.isCookieAvailable('send_with_enter')){
+        this.sendWithEnter = JSON.parse(this.$cookie.getCookie('send_with_enter').toLowerCase())
+      } else { this.updateSendWithEnterCookie(true) }
     },
 
     // Helps to convert timestamp into readable time string
@@ -320,7 +378,6 @@ export default {
       }
     }
   },
-
   watch: {
     // Scrolls to chat bottom when new message added
     messages: {

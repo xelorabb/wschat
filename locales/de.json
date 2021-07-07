@@ -15,8 +15,11 @@
       "leave": "hat den Chat verlassen"
     }
   },
-  "placeholder": {
+  "placeholders": {
     "messageInput": "Schreib deine Nachricht ..."
+  },
+  "labels":{
+    "sendWithEnter": "Senden mit Enter"
   },
   "errors": {
     "empty": "Leere Nachrichten sind nicht erlaubt!",

@@ -15,8 +15,11 @@
       "leave": "leaved the chat"
     }
   },
-  "placeholder": {
+  "placeholders": {
     "messageInput": "Type your message ..."
+  },
+  "labels":{
+    "sendWithEnter": "Send with enter"
   },
   "errors": {
     "empty": "No empty message allowed!",
