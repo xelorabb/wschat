@@ -43,6 +43,9 @@ io.on('connection', (socket) => {
   // Broadcasts a message from a client
   socket.on('send-message', (message) => {
     logger.log('info', 'message sended', {socket: {id: socket.id}, value: message.value})
+
+    message.timestamp = Date.now() // Overrides client time with current server time
+    socket.emit('server-time', Date.now()) // Update client time with current server time
     socket.broadcast.emit('send-message-bc', message)
   })
 })

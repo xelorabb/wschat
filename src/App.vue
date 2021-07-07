@@ -30,7 +30,7 @@
       </div>
 
       <!-- server time -->
-      <div class="flex-none text-xs text-right">{{ $t('server.time') }}: {{ new Date(serverTime).toLocaleTimeString() }}</div>
+      <div class="flex-none text-xs text-right">{{ $t('server.time') }}: {{ getTimeString(serverTime) }}</div>
     </div>
 
     <!-- chat panel -->
@@ -41,12 +41,15 @@
         <template v-if="activeView == 'list'">
           <div class="p-1 odd:bg-gray-200 even:bg-white">
 
-            <!-- list sender -->
-            <span class="font-bold">{{ msg.sender == socketID ? $t('you') : msg.sender }}: </span>
+            <div class="flex">
+              <!-- list sender -->
+              <span class="flex-none font-bold">{{ msg.sender == socketID ? $t('you') : msg.sender }}: </span>
 
-            <!-- list message -->
-            <span v-if="msg.sender == 'server'" class="font-bold text-blue-700">{{ translateServerMessage(msg.value) }}</span>
-            <span v-else>{{ msg.value }}</span>
+              <!-- list message -->
+              <span v-if="msg.sender == 'server'" class="flex-grow px-1 font-bold text-blue-700">{{ translateServerMessage(msg.value) }}</span>
+              <span v-else class="flex-grow px-1">{{ msg.value }}</span>
+              <span class="flex-none text-xs italic">{{ getTimeString(msg.timestamp, 'short') }}</span>
+            </div>
 
           </div>
         </template>
@@ -65,6 +68,9 @@
                 <!-- bubble message -->
                 <div>{{ msg.value }}</div>
 
+                <!-- bubble timestamp -->
+                <div class="text-xs text-blue-700 text-right italic pt-2">{{ getTimeString(msg.timestamp, 'short') }}</div>
+
               </div>
             </div>
           </template>
@@ -73,7 +79,8 @@
           <template v-else>
             <div class="flex justify-center">
               <div class="bg-gray-100 text-center italic p-2 m-2 border rounded-xl w-2/3">
-                {{ translateServerMessage(msg.value) }}
+                <span>{{ translateServerMessage(msg.value) }}</span>
+                <span class="text-xs text-blue-700 text-right italic pl-2">{{ getTimeString(msg.timestamp, 'short') }}</span>
               </div>
             </div>
           </template>
@@ -147,7 +154,9 @@ export default {
     // Gets server time and start client interval to update the time
     vm.socket.on('server-time', (time) => {
       vm.serverTime = time
-      setInterval(() => {
+      
+      clearInterval(vm.clientTimeInterval)
+      vm.clientTimeInterval = setInterval(() => {
         vm.serverTime += 1000
       }, 1000)
     })
@@ -157,6 +166,7 @@ export default {
       socket: null,
       socketID: null,
       serverTime: Date.now(),
+      clientTimeInterval: null,
       message: '',
       messages: [],
 
@@ -187,7 +197,8 @@ export default {
       else {
         this.messages.push({
           sender: data,
-          value: value
+          value: value,
+          timestamp: this.serverTime
         })
       }
     },
@@ -205,7 +216,8 @@ export default {
         if(this.message != '') {
           const message = {
             sender: this.socketID,
-            value: this.message
+            value: this.message,
+            timestamp: this.serverTime
           }
 
           this.pushMessage(message)
@@ -297,6 +309,15 @@ export default {
       if(this.$cookie.isCookieAvailable('view')){
         this.activeView = this.$cookie.getCookie('view')
       } else { this.updateViewCookie('list') }
+    },
+
+    // Helps to convert timestamp into readable time string
+    getTimeString: function(time, style) {
+      if(typeof style != 'string') {
+        return new Date(time).toLocaleTimeString()
+      } else {
+        return new Date(time).toLocaleTimeString([], {timeStyle: style})
+      }
     }
   },
 
