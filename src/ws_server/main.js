@@ -1,9 +1,11 @@
+require('dotenv').config({path: `${__dirname}/../../.env`})
+
 const express = require('express')
 const app = express()
 const server = require('http').createServer(app)
 const io = require('socket.io')(server, {cors: true})
 const winston = require('winston')
-const port = 3000
+const port = process.env.WS_SERVER_PORT
 
 // Define winston logger
 const logger = winston.createLogger({
@@ -11,12 +13,12 @@ const logger = winston.createLogger({
     new winston.transports.Console(),
     new winston.transports.File({
       level: 'error',
-      filename: 'logs/error.log',
-      maxsize: 5242880
+      filename: `${process.env.LOG_DIR}/error.log`,
+      maxsize: process.env.LOG_FILE_MAX_SIZE
     }),
     new winston.transports.File({
-      filename: 'logs/all.log',
-      maxsize: 5242880
+      filename: `${process.env.LOG_DIR}/all.log`,
+      maxsize: process.env.LOG_FILE_MAX_SIZE
     })
   ],
   format: winston.format.combine(

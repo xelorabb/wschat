@@ -19,12 +19,12 @@ library.add(faComments)
 library.add(faPaperPlane)
 
 const i18n = createI18n({
-  locale: 'en',
-  fallbackLocale: 'en',
+  locale: process.env.VUE_APP_I18N_LOCALE,
+  fallbackLocale: process.env.VUE_APP_I18N_FALLBACK_LOCALE,
   messages: { en, de }
 });
 
-VueCookieNext.config({ expire: '1d' })
+VueCookieNext.config({ expire: process.env.VUE_APP_COOKIE_EXPIRE })
 
 createApp(App)
   .use(i18n)
