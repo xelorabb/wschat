@@ -23,6 +23,7 @@
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.0.2",
     "vue": "^3.0.0",
     "vue-3-socket.io": "^1.0.2",
+    "vue-i18n": "^9.1.6",
     "winston": "^3.3.3"
   },
   "devDependencies": {

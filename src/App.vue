@@ -9,22 +9,28 @@
 
       <!-- change view button group -->
       <div class="flex flex-none justify-center rounded-lg text-sm" role="group">
-        <button @click="changeActiveView('list')" title="list view"
+        <button @click="changeActiveView('list')" :title="$t('tooltips.listView')"
                 v-bind:class="{ 'bg-blue-700' : activeView == 'list' }"
                 class="bg-blue-500 text-white hover:bg-blue-700 rounded-l-lg px-2 py-1 mx-0 outline-none">
           <fas icon="list" />
         </button>
-        <button @click="changeActiveView('bubble')" title="bubble view"
-                v-bind:class="{ 'bg-blue-700' : activeView == 'bubble' }"
+        <button @click="changeActiveView('bubble')" :title="$t('tooltips.bubbleView')"
+                :class="{ 'bg-blue-700' : activeView == 'bubble' }"
                 class="bg-blue-500 text-white hover:bg-blue-700 rounded-r-lg px-2 py-1 mx-0 outline-none">
           <fas icon="comments" />
         </button>
       </div>
 
-      <div class="flex-grow"></div>
+      <div class="flex-grow px-2">
+        <select v-model="$i18n.locale" :title="$t('tooltips.language')"
+                class="border rounded py-1 px-1 text-gray-700 focus:outline-none focus:shadow-outline">
+          <option value="en">en</option>
+          <option value="de">de</option>
+        </select>
+      </div>
 
       <!-- server time -->
-      <div class="flex-none text-xs text-right">Server Time: {{ new Date(serverTime).toLocaleTimeString() }}</div>
+      <div class="flex-none text-xs text-right">{{ $t('server.time') }}: {{ new Date(serverTime).toLocaleTimeString() }}</div>
     </div>
 
     <!-- chat panel -->
@@ -36,10 +42,10 @@
           <div class="p-1 odd:bg-gray-200 even:bg-white">
 
             <!-- list sender -->
-            <span class="font-bold">{{ msg.sender == socketID ? 'You' : msg.sender }}: </span>
+            <span class="font-bold">{{ msg.sender == socketID ? $t('you') : msg.sender }}: </span>
 
             <!-- list message -->
-            <span v-if="msg.sender == 'server'" class="font-bold text-blue-700">{{ msg.value }}</span>
+            <span v-if="msg.sender == 'server'" class="font-bold text-blue-700">{{ translateServerMessage(msg.value) }}</span>
             <span v-else>{{ msg.value }}</span>
 
           </div>
@@ -50,11 +56,11 @@
 
           <!-- client bubble -->
           <template v-if="msg.sender != 'server'">
-            <div v-bind:class="{'justify-end': msg.sender == socketID}" class="flex">
+            <div :class="{'justify-end': msg.sender == socketID}" class="flex">
               <div class="bg-gray-100 p-2 m-2 border rounded-xl w-7/12">
 
                 <!-- bubble sender -->
-                <div class="text-xs text-blue-700 pb-2">{{ msg.sender == socketID ? 'You' : msg.sender }}</div>
+                <div class="text-xs text-blue-700 pb-2">{{ msg.sender == socketID ? $t('you') : msg.sender }}</div>
 
                 <!-- bubble message -->
                 <div>{{ msg.value }}</div>
@@ -67,7 +73,7 @@
           <template v-else>
             <div class="flex justify-center">
               <div class="bg-gray-100 text-center italic p-2 m-2 border rounded-xl w-2/3">
-                {{ msg.value }}
+                {{ translateServerMessage(msg.value) }}
               </div>
             </div>
           </template>
@@ -80,13 +86,13 @@
     <form @submit.prevent class="flex">
 
       <!-- message input -->
-      <input v-model="message" @keyup.enter="sendMessage()" placeholder="Type your message ..."
-             v-bind:class="{ 'border-red-600': hasError}"
-             class="flex-grow mt-2 mr-2 hadow appearance-none border rounded py-2 playholder-gray-400
-                    px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" />
+      <input v-model="message" @keyup.enter="sendMessage()" :placeholder="$t('placeholder.messageInput')"
+             :class="{ 'border-red-600': hasError}"
+             class="flex-grow mt-2 mr-2 border rounded py-2 playholder-gray-400
+                    px-3 text-gray-700 focus:outline-none focus:shadow-outline" type="text" />
 
       <!-- send button -->
-      <button @click="sendMessage()" title="send message"
+      <button @click="sendMessage()" :title="$t('tooltips.sendMessage')"
               class="flex-none mt-2 bg-blue-500 hover:bg-blue-700 text-white
                      font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">
         <fas icon="paper-plane" />
@@ -95,9 +101,9 @@
     </form>
 
     <!-- message input error message -->
-    <div v-if="hasError" class="text-xs text-red-600 pt-1">{{ errorMessage }}</div>
+    <div v-if="hasError" class="text-xs text-red-600 pt-1">{{ $t(errorMessage) }}</div>
 
-    <span class="pt-2">Your Name: {{socketID}}</span>
+    <span class="pt-2">{{ $t('yourName') }}: {{socketID}}</span>
   </div>
 </template>
 
@@ -118,17 +124,17 @@ export default {
     // Adds current client joined message to client messages
     vm.socket.on('connect', () => {
       vm.socketID = socket.id
-      vm.pushMessage('server', `You entered the chat`)
+      vm.pushMessage('server', {client: 'you', msg: 'server.messages.enter-alt'})
     })
 
     // Adds new client joined message to client messages
     vm.socket.on('join-bc', (socketID) => {
-      vm.pushMessage('server', `${socketID} entered the chat`)
+      vm.pushMessage('server', {client: socketID, msg: 'server.messages.enter'})
     })
 
     // Adds other client leaved message to client messages
     vm.socket.on('leave-bc', (socketID) => {
-      vm.pushMessage('server', `${socketID} leaved the chat`)
+      vm.pushMessage('server', {client: socketID, msg: 'server.messages.leave'})
     })
 
     // Adds receiving message to client messages
@@ -159,8 +165,8 @@ export default {
       hasError: false,
       errorMessage: '',
       errors: {
-        empty: 'No empty message allowed!',
-        spam: 'Don\'t spam, please'
+        empty: 'errors.empty',
+        spam: 'errors.spam'
       },
 
       // Spam variables
@@ -256,6 +262,11 @@ export default {
         const chat = document.getElementById('chat')
         chat.scrollTop = chat.scrollHeight
       })
+    },
+
+    // Translates the server messages
+    translateServerMessage: function(value) {
+      return `${value.client == 'you' ? this.$t('you') : value.client} ${this.$t(value.msg)}`
     }
   },
 

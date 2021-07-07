@@ -1,0 +1,25 @@
+{
+  "you": "Du",
+  "yourName": "Dein Name",
+  "tooltips": {
+    "language": "Sprache auswählen",
+    "listView": "Listen Ansicht",
+    "bubbleView": "Sprechblasen Ansicht",
+    "sendMessage": "Nachricht senden"
+  },
+  "server": {
+    "time": "Server Zeit",
+    "messages": {
+      "enter": "hat den Chat betreten",
+      "enter-alt": "hast den Chat betreten",
+      "leave": "hat den Chat verlassen"
+    }
+  },
+  "placeholder": {
+    "messageInput": "Schreib deine Nachricht ..."
+  },
+  "errors": {
+    "empty": "Leere Nachrichten sind nicht erlaubt!",
+    "spam": "Bitte nicht spamen!"
+  }
+}
