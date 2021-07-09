@@ -11,16 +11,25 @@ import {
   faList,
   faComments,
   faPaperPlane,
-  faLightbulb
+  faLightbulb,
+  faChevronDown
 } from '@fortawesome/free-solid-svg-icons'
 import {
   faLightbulb as farLightbulb
 } from '@fortawesome/free-regular-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
+import {
+  Listbox,
+  ListboxButton,
+  ListboxOptions,
+  ListboxOption,
+} from '@headlessui/vue'
+
 library.add(faList)
 library.add(faComments)
 library.add(faPaperPlane)
+library.add(faChevronDown)
 library.add(faLightbulb)
 library.add(farLightbulb)
 
@@ -36,4 +45,8 @@ createApp(App)
   .use(i18n)
   .use(VueCookieNext)
   .component('fas', FontAwesomeIcon)
+  .component('Listbox', Listbox)
+  .component('ListboxButton', ListboxButton)
+  .component('ListboxOptions', ListboxOptions)
+  .component('ListboxOption', ListboxOption)
   .mount('#app')

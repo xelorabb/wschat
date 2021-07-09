@@ -22,15 +22,7 @@
         </button>
       </div>
 
-      <div class="flex-none pr-2">
-        <select v-model="$i18n.locale" @change="updateLocalizationCookie()" :title="$t('tooltips.language')"
-                class="border rounded py-1 px-1 text-gray-700 focus:outline-none focus:shadow-outline
-                dark:text-gray-400 dark:bg-gray-800 dark:border-gray-700">
-          <option value="en">en</option>
-          <option value="de">de</option>
-        </select>
-      </div>
-
+      <!-- dark mode toggle button -->
       <div class="flex-none pr-2">
         <button @mouseover="toggleDarkModeToggleIcon(true)"
                 @mouseleave="toggleDarkModeToggleIcon(false)"
@@ -38,6 +30,26 @@
                 class="text-primary dark:text-primary-light">
           <fas :icon="[darkModeToggleIcon, 'lightbulb']"></fas>
         </button>
+      </div>
+
+      <!-- language select -->
+      <div class="flex-none pr-2">
+        <Listbox v-model="$i18n.locale">
+          <ListboxButton class="relative w-16 border rounded p-1 text-gray-700
+                                dark:text-gray-400 dark:bg-gray-800 dark:border-gray-700">
+            {{ $i18n.locale }} <fas class="fa-xs text-gray-700 ml-2" icon="chevron-down"/>
+          </ListboxButton>
+
+          <ListboxOptions class="absolute w-16 overflow-auto bg-white border rounded max-h-60 dark:border-gray-700">
+            <ListboxOption v-for="(lang, index) in Object.keys(this.$i18n.messages)" :key="`lang-${index}`"
+                           :value="lang"
+                           class="text-gray-700 hover:bg-primary hover:text-white p-1 pl-3
+                                  dark:text-gray-400 dark:bg-gray-800 dark:border-gray-700
+                                  dark:hover:bg-primary dark:hover:text-white" >
+              {{ lang }}
+            </ListboxOption>
+          </ListboxOptions>
+        </Listbox>
       </div>
 
       <div class="flex-grow pr-2"></div>
