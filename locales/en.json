@@ -5,7 +5,9 @@
     "language": "select language",
     "listView": "list view",
     "bubbleView": "bubble view",
-    "sendMessage": "send message"
+    "sendMessage": "send message",
+    "darkModeOn": "dark mode on",
+    "darkModeOff": "dark mode off"
   },
   "server": {
     "time": "Server time",

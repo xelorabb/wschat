@@ -27,6 +27,7 @@
         <button @mouseover="toggleDarkModeToggleIcon(true)"
                 @mouseleave="toggleDarkModeToggleIcon(false)"
                 @click="changeDarkMode(!isDarkMode)"
+                :title="isDarkMode ? $t('tooltips.darkModeOff') : $t('tooltips.darkModeOn')"
                 class="text-primary dark:text-primary-light">
           <fas :icon="[darkModeToggleIcon, 'lightbulb']"></fas>
         </button>

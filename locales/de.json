@@ -5,7 +5,9 @@
     "language": "Sprache auswählen",
     "listView": "Listen Ansicht",
     "bubbleView": "Sprechblasen Ansicht",
-    "sendMessage": "Nachricht senden"
+    "sendMessage": "Nachricht senden",
+    "darkModeOn": "Darkmode an",
+    "darkModeOff": "Darkmode aus"
   },
   "server": {
     "time": "Server Zeit",
