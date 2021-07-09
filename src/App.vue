@@ -154,11 +154,19 @@
 
     <span class="pt-2 dark:text-gray-400">{{ $t('yourName') }}: {{socketID}}</span>
 
-    <div>
-      <input v-model="sendWithEnter"
-             @change="updateSendWithEnterCookie()"
-             type="checkbox" name="send-with-enter" />
-      <label class="pl-1 dark:text-gray-400" for="send-with-enter">{{ $t('labels.sendWithEnter') }}</label>
+    <div class="py-2">
+      <Switch v-model="sendWithEnter"
+              @change="updateSendWithEnterCookie()"
+              :class="sendWithEnter ? 'bg-primary' : 'bg-gray-400 dark:bg-gray-600'"
+              class="relative inline-flex h-5 w-8
+                     border-2 border-transparent rounded-full cursor-pointer
+                     transition-colors ease-in-out duration-200">
+        <span :class="sendWithEnter ? 'translate-x-3' : 'translate-x-0'"
+              class="inline-block h-4 w-4 rounded-full bg-white
+                     transform transition ease-in-out duration-200"/>
+      </Switch>
+      <label class="pl-1 dark:text-gray-400">{{ $t('labels.sendWithEnter') }}</label>
+
     </div>
 
   </div>

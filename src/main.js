@@ -24,6 +24,7 @@ import {
   ListboxButton,
   ListboxOptions,
   ListboxOption,
+  Switch
 } from '@headlessui/vue'
 
 library.add(faList)
@@ -49,4 +50,5 @@ createApp(App)
   .component('ListboxButton', ListboxButton)
   .component('ListboxOptions', ListboxOptions)
   .component('ListboxOption', ListboxOption)
+  .component('Switch', Switch)
   .mount('#app')
