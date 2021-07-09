@@ -1,36 +1,49 @@
 <template>
-  <div class="flex flex-col px-6 py-6">
+  <div :class="{ 'dark' : isDarkMode}">
+    <div class="flex flex-col px-6 py-6 h-screen bg-white dark:bg-gray-900">
 
     <!-- headline -->
-    <h1 class="text-6xl w-full text-center pb-4">Websocket Chat</h1>
+    <h1 class="text-6xl w-full text-center pb-4 dark:text-gray-400">Websocket Chat</h1>
 
     <!-- top control panel -->
     <div class="flex items-center mb-2">
 
       <!-- change view button group -->
-      <div class="flex flex-none justify-center rounded-lg text-sm" role="group">
+      <div class="flex flex-none justify-center rounded-lg text-sm pr-2" role="group">
         <button @click="changeActiveView('list')" :title="$t('tooltips.listView')"
-                v-bind:class="{ 'bg-blue-700' : activeView == 'list' }"
-                class="bg-blue-500 text-white hover:bg-blue-700 rounded-l-lg px-2 py-1 mx-0 outline-none">
+                :class="{ 'bg-primary-dark' : activeView == 'list' }"
+                class="bg-primary text-white hover:bg-primary-dark rounded-l-lg px-2 py-1 mx-0 outline-none">
           <fas icon="list" />
         </button>
         <button @click="changeActiveView('bubble')" :title="$t('tooltips.bubbleView')"
-                :class="{ 'bg-blue-700' : activeView == 'bubble' }"
-                class="bg-blue-500 text-white hover:bg-blue-700 rounded-r-lg px-2 py-1 mx-0 outline-none">
+                :class="{ 'bg-primary-dark' : activeView == 'bubble' }"
+                class="bg-primary text-white hover:bg-primary-dark rounded-r-lg px-2 py-1 mx-0 outline-none">
           <fas icon="comments" />
         </button>
       </div>
 
-      <div class="flex-grow px-2">
+      <div class="flex-none pr-2">
         <select v-model="$i18n.locale" @change="updateLocalizationCookie()" :title="$t('tooltips.language')"
-                class="border rounded py-1 px-1 text-gray-700 focus:outline-none focus:shadow-outline">
+                class="border rounded py-1 px-1 text-gray-700 focus:outline-none focus:shadow-outline
+                dark:text-gray-400 dark:bg-gray-800 dark:border-gray-700">
           <option value="en">en</option>
           <option value="de">de</option>
         </select>
       </div>
 
+      <div class="flex-none pr-2">
+        <button @mouseover="toggleDarkModeToggleIcon(true)"
+                @mouseleave="toggleDarkModeToggleIcon(false)"
+                @click="changeDarkMode(!isDarkMode)"
+                class="text-primary dark:text-primary-light">
+          <fas :icon="[darkModeToggleIcon, 'lightbulb']"></fas>
+        </button>
+      </div>
+
+      <div class="flex-grow pr-2"></div>
+
       <!-- server time -->
-      <div class="flex-none text-xs text-right">{{ $t('server.time') }}: {{ getTimeString(serverTime) }}</div>
+      <div class="flex-none text-xs text-right dark:text-gray-400">{{ $t('server.time') }}: {{ getTimeString(serverTime) }}</div>
     </div>
 
     <!-- chat panel -->
@@ -39,14 +52,15 @@
 
         <!-- list view -->
         <template v-if="activeView == 'list'">
-          <div class="p-1 odd:bg-gray-200 even:bg-white">
+          <div class="p-1 odd:bg-gray-200 even:bg-white
+                      dark:text-gray-400 dark:odd:bg-gray-700 dark:even:bg-gray-800">
 
             <div class="flex">
               <!-- list sender -->
               <span class="flex-none font-bold">{{ msg.sender == socketID ? $t('you') : msg.sender }}: </span>
 
               <!-- list message -->
-              <span v-if="msg.sender == 'server'" class="flex-grow px-1 font-bold text-blue-700">{{ translateServerMessage(msg.value) }}</span>
+              <span v-if="msg.sender == 'server'" class="flex-grow px-1 font-bold text-primary dark:text-primary-lighter">{{ translateServerMessage(msg.value) }}</span>
               <span v-else class="flex-grow px-1" v-html="msg.value"></span>
               <span class="flex-none text-xs italic">{{ getTimeString(msg.timestamp, 'short') }}</span>
             </div>
@@ -60,16 +74,21 @@
           <!-- client bubble -->
           <template v-if="msg.sender != 'server'">
             <div :class="{'justify-end': msg.sender == socketID}" class="flex">
-              <div class="bg-gray-100 p-2 m-2 border rounded-xl w-7/12">
+              <div class="bg-gray-100 p-2 m-2 border rounded-xl w-7/12
+                          dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700">
 
                 <!-- bubble sender -->
-                <div class="text-xs text-blue-700 pb-2">{{ msg.sender == socketID ? $t('you') : msg.sender }}</div>
+                <div class="text-xs text-primary dark:text-primary-lighter pb-2">
+                  {{ msg.sender == socketID ? $t('you') : msg.sender }}
+                </div>
 
                 <!-- bubble message -->
                 <div v-html="msg.value"></div>
 
                 <!-- bubble timestamp -->
-                <div class="text-xs text-blue-700 text-right italic pt-2">{{ getTimeString(msg.timestamp, 'short') }}</div>
+                <div class="text-xs text-primary dark:text-primary-lighter text-right italic pt-2">
+                  {{ getTimeString(msg.timestamp, 'short') }}
+                </div>
 
               </div>
             </div>
@@ -78,9 +97,12 @@
           <!-- server bubble -->
           <template v-else>
             <div class="flex justify-center">
-              <div class="bg-gray-100 text-center italic p-2 m-2 border rounded-xl w-2/3">
+              <div class="bg-gray-100 text-center italic p-2 m-2 border rounded-xl w-2/3
+                          dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700">
                 <span>{{ translateServerMessage(msg.value) }}</span>
-                <span class="text-xs text-blue-700 text-right italic pl-2">{{ getTimeString(msg.timestamp, 'short') }}</span>
+                <span class="text-xs text-primary dark:text-primary-lighter text-right italic pl-2">
+                  {{ getTimeString(msg.timestamp, 'short') }}
+                </span>
               </div>
             </div>
           </template>
@@ -98,15 +120,17 @@
                 @keyup.enter="submitMessage($event)"
                 @keydown.enter.prevent
                 :placeholder="$t('placeholders.messageInput')"
-                :class="{ 'border-red-600': hasError }"
+                :class="{ 'border-red-600 dark:border-red-900': hasError }"
                 class="flex-grow mt-2 mr-2 border rounded py-2 playholder-gray-400
                        resize-none px-3 text-gray-700 focus:outline-none
-                       focus:shadow-outline"
+                       focus:shadow-outline
+                       dark:text-gray-400 dark:bg-gray-800 dark:playholder-gray-600
+                       dark:border-gray-700"
                 type="text" rows="1" />
 
       <!-- send button -->
       <button @click="sendMessage()" :title="$t('tooltips.sendMessage')"
-              class="self-start flex-none mt-2 bg-blue-500 hover:bg-blue-700 text-white
+              class="self-start flex-none mt-2 bg-primary hover:bg-primary-dark text-white
                      font-bold py-4 px-4 rounded focus:outline-none focus:shadow-outline" type="button">
         <fas icon="paper-plane" size="lg"/>
       </button>
@@ -114,17 +138,18 @@
     </form>
 
     <!-- message input error message -->
-    <div v-if="hasError" class="text-xs text-red-600 pt-1">{{ $t(errorMessage) }}</div>
+    <div v-if="hasError" class="text-xs text-red-600 dark:text-red-800 pt-1">{{ $t(errorMessage) }}</div>
 
-    <span class="pt-2">{{ $t('yourName') }}: {{socketID}}</span>
+    <span class="pt-2 dark:text-gray-400">{{ $t('yourName') }}: {{socketID}}</span>
 
     <div>
       <input v-model="sendWithEnter"
              @change="updateSendWithEnterCookie()"
              type="checkbox" name="send-with-enter" />
-      <label class="pl-1" for="send-with-enter">{{ $t('labels.sendWithEnter') }}</label>
+      <label class="pl-1 dark:text-gray-400" for="send-with-enter">{{ $t('labels.sendWithEnter') }}</label>
     </div>
 
+  </div>
   </div>
 </template>
 
@@ -189,6 +214,10 @@ export default {
 
       // Option variables
       sendWithEnter: true,
+
+      // Darkmode varibales
+      isDarkMode: false,
+      darkModeToggleIcon: 'far',
 
       // Error variables
       hasError: false,
@@ -284,7 +313,7 @@ export default {
     // Changes active chat view
     changeActiveView: function(type) {
       this.activeView = type
-      this.updateViewCookie(type)
+      this.updateViewCookie()
       this.scrollBottom()
     },
 
@@ -339,13 +368,18 @@ export default {
     },
 
     // Updates view cookie
-    updateViewCookie: function(view) {
-      this.updateCookie('view', view)
+    updateViewCookie: function() {
+      this.updateCookie('view', this.activeView)
     },
 
     // Updates send with enter cookie
     updateSendWithEnterCookie: function() {
       this.updateCookie('send_with_enter', this.sendWithEnter)
+    },
+
+    // Update is dark mode cookie
+    updateIsDarkModeCookie: function() {
+      this.updateCookie('is_dark_mode', this.isDarkMode)
     },
 
     // Cookie update helper
@@ -362,11 +396,15 @@ export default {
 
       if(this.$cookie.isCookieAvailable('view')){
         this.activeView = this.$cookie.getCookie('view')
-      } else { this.updateViewCookie('list') }
+      } else { this.updateViewCookie() }
 
       if(this.$cookie.isCookieAvailable('send_with_enter')){
         this.sendWithEnter = JSON.parse(this.$cookie.getCookie('send_with_enter').toLowerCase())
-      } else { this.updateSendWithEnterCookie(true) }
+      } else { this.updateSendWithEnterCookie() }
+
+      if(this.$cookie.isCookieAvailable('is_dark_mode')){
+        this.isDarkMode = JSON.parse(this.$cookie.getCookie('is_dark_mode').toLowerCase())
+      } else { this.updateIsDarkModeCookie() }
     },
 
     // Helps to convert timestamp into readable time string
@@ -376,6 +414,19 @@ export default {
       } else {
         return new Date(time).toLocaleTimeString([], {timeStyle: style})
       }
+    },
+
+    // Changes dark mode to on or off
+    changeDarkMode: function(isDarkMode) {
+      this.isDarkMode = isDarkMode
+      this.darkModeToggleIcon = 'far'
+      this.updateIsDarkModeCookie()
+    },
+
+    // Toggles dark mode toggle button icon
+    toggleDarkModeToggleIcon: function(n) {
+      if(n) { this.darkModeToggleIcon = 'fas' }
+      else { this.darkModeToggleIcon = 'far' }
     }
   },
   watch: {

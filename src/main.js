@@ -10,13 +10,19 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import {
   faList,
   faComments,
-  faPaperPlane
+  faPaperPlane,
+  faLightbulb
 } from '@fortawesome/free-solid-svg-icons'
+import {
+  faLightbulb as farLightbulb
+} from '@fortawesome/free-regular-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 library.add(faList)
 library.add(faComments)
 library.add(faPaperPlane)
+library.add(faLightbulb)
+library.add(farLightbulb)
 
 const i18n = createI18n({
   locale: process.env.VUE_APP_I18N_LOCALE,
